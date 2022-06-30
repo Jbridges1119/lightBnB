@@ -1,11 +1,10 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 module.exports = function(router, database) {
 
   // Create a new user
   router.post('/', (req, res) => {
     const user = req.body;
-    user.password = bcrypt.hashSync(user.password, 12);
     database.addUser(user)
     .then(user => {
       if (!user) {
@@ -13,7 +12,7 @@ module.exports = function(router, database) {
         return;
       }
       req.session.userId = user.id;
-      res.send("🤗");
+      res.send("🤗 teste");
     })
     .catch(e => res.send(e));
   });
@@ -24,11 +23,14 @@ module.exports = function(router, database) {
    * @param {String} password encrypted
    */
   const login =  function(email, password) {
+    console.log('email', email)
     return database.getUserWithEmail(email)
     .then(user => {
-      if (bcrypt.compareSync(password, user.password)) {
+      if (password, user.password) {
+ 
         return user;
       }
+
       return null;
     });
   }
