@@ -94,7 +94,7 @@ GROUP BY properties.id, reservations.id
 ORDER BY reservations.start_date
 LIMIT $2;`, [guest_id, limit])
     .then((result)=> {
-      return result.rows[0];
+      return result.rows;
     })
     .catch(err => console.log(err.message));
 };
@@ -114,41 +114,33 @@ const getAllProperties = (options, limit = 10) => {
   SELECT properties.*, avg(property_reviews.rating) as average_rating
   FROM properties
   JOIN property_reviews ON properties.id = property_id
+  WHERE 1 = 1
   `;
+ 
   if (options.owner_id) {
     queryParams.push(`${options.owner_id}`);
-    queryString += `WHERE owner_id = $${queryParams.length}
+    queryString += `AND owner_id = $${queryParams.length}
   `;
-  } else {
+  } 
 
     if (options.city) {
       queryParams.push(`%${options.city}%`);
-      queryString += `WHERE city LIKE $${queryParams.length}
+      queryString += `AND city LIKE $${queryParams.length}
   `;
     }
 
-    if (options.minimum_price_per_night && !options.city && !options.maximum_price_per_night) {
+    if (options.minimum_price_per_night) {
       queryParams.push(`${options.minimum_price_per_night * 100}`);
-      queryString += `WHERE cost_per_night >= $${queryParams.length}
+      queryString += `AND cost_per_night >= $${queryParams.length}
   `;
-    } else if (options.minimum_price_per_night && !options.city) {
-      queryParams.push(`${options.minimum_price_per_night * 100}`);
-      queryString += `WHERE cost_per_night >= $${queryParams.length}
-  `;
-    }
+    } 
 
-    if (options.maximum_price_per_night && !options.city && !options.minimum_price_per_night) {
-      queryParams.push(`${options.maximum_price_per_night * 100}`);
-      queryString += `WHERE cost_per_night <= $${queryParams.length}
-  `;
-    } else {
+    if (options.maximum_price_per_night) {
       queryParams.push(`${options.maximum_price_per_night * 100}`);
       queryString += `AND cost_per_night <= $${queryParams.length}
   `;
-    }
+    } 
   
- 
-  }
   queryString += `GROUP BY properties.id
   `;
 
@@ -163,11 +155,9 @@ const getAllProperties = (options, limit = 10) => {
   LIMIT $${queryParams.length};
   `;
 
- 
   return pool
     .query(queryString, queryParams)
     .then((result) => {
-      console.log(result.rows);
       return result.rows;
     })
     .catch((err) => {
@@ -202,6 +192,10 @@ return pool
 })
 .catch(err => console.log(err.message));
 };
+
+
+
+
 exports.addProperty = addProperty;
 
 
